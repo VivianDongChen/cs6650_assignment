@@ -47,14 +47,21 @@ public class App {
         ExecutorService senderPool = Executors.newCachedThreadPool();
         SenderOrchestrator orchestrator = new SenderOrchestrator(config, messageQueue, metrics, senderPool);
 
-        orchestrator.runWarmupAndMainPhase();
-        System.out.println("[TODO] Networking implementation pending – orchestrator is currently a stub.");
-
-        // Shutdown hook to ensure threads are terminated cleanly when the program exits.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             orchestrator.shutdown();
             generator.stop();
             senderPool.shutdownNow();
         }));
+
+        orchestrator.runWarmupAndMainPhase();
+
+        generator.stop();
+        try {
+            generatorThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        senderPool.shutdown();
     }
 }
