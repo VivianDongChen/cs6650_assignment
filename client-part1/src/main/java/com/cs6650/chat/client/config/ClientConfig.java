@@ -10,6 +10,7 @@ public final class ClientConfig {
     private final int warmupMessagesPerThread;
     private final long totalMessages;
     private final int messageQueueCapacity;
+    private final int mainThreads;
     private final Duration sendTimeout;
     private final int maxRetries;
     private final Duration initialBackoff;
@@ -20,6 +21,7 @@ public final class ClientConfig {
                         int warmupMessagesPerThread,
                         long totalMessages,
                         int messageQueueCapacity,
+                        int mainThreads,
                         Duration sendTimeout,
                         int maxRetries,
                         Duration initialBackoff,
@@ -29,6 +31,7 @@ public final class ClientConfig {
         this.warmupMessagesPerThread = warmupMessagesPerThread;
         this.totalMessages = totalMessages;
         this.messageQueueCapacity = messageQueueCapacity;
+        this.mainThreads = mainThreads;
         this.sendTimeout = sendTimeout;
         this.maxRetries = maxRetries;
         this.initialBackoff = initialBackoff;
@@ -55,6 +58,10 @@ public final class ClientConfig {
         return messageQueueCapacity;
     }
 
+    public int mainThreads() {
+        return mainThreads;
+    }
+
     public Duration sendTimeout() {
         return sendTimeout;
     }
@@ -77,5 +84,9 @@ public final class ClientConfig {
 
     public long mainPhaseMessagesTotal() {
         return Math.max(0, totalMessages - warmupMessagesTotal());
+    }
+
+    public int effectiveMainThreads() {
+        return mainThreads > 0 ? mainThreads : warmupThreads;
     }
 }

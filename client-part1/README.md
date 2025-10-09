@@ -47,6 +47,29 @@ Goals:
 - [ ] Warmup phase metrics validated (32 × 1000).
 - [ ] Full run metrics captured (success ≥ 500 000, failure == 0 ideally).
 - [ ] EC2 client run (same region as server) + collect screenshot for results.
+- [ ] Capture Little's Law estimate vs. actual throughput.
+
+## Running the client (sample)
+
+```bash
+mvn -q clean package
+java -jar target/client-part1-1.0-SNAPSHOT.jar \
+  --server-uri=ws://localhost:8080/chat/1 \
+  --warmup-threads=32 \
+  --warmup-messages-per-thread=1000 \
+  --main-threads=64 \
+  --total-messages=500000
+```
+
+Additional flags:
+
+| Flag | Description | Default |
+| --- | --- | --- |
+| `--queue-capacity` | Bounded queue size between generator and senders | 10 000 |
+| `--send-timeout` | ISO-8601 duration for awaiting server ack | `PT10S` |
+| `--max-retries` | Max retries per message before counting as failure | 5 |
+| `--initial-backoff` | First backoff duration (`PT0.1S`) | `PT0.1S` |
+| `--max-backoff` | Maximum backoff duration | `PT5S` |
 
 ## TODO Backlog
 

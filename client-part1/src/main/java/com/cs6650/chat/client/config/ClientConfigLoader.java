@@ -16,6 +16,7 @@ public final class ClientConfigLoader {
     private static final int DEFAULT_WARMUP_MSGS_PER_THREAD = 1000;
     private static final long DEFAULT_TOTAL_MESSAGES = 500_000L;
     private static final int DEFAULT_QUEUE_CAPACITY = 10_000;
+    private static final int DEFAULT_MAIN_THREADS = 64;
     private static final Duration DEFAULT_SEND_TIMEOUT = Duration.ofSeconds(10);
     private static final int DEFAULT_MAX_RETRIES = 5;
     private static final Duration DEFAULT_INITIAL_BACKOFF = Duration.ofMillis(100);
@@ -34,6 +35,7 @@ public final class ClientConfigLoader {
                     asInt(parsed, "warmup-messages-per-thread", DEFAULT_WARMUP_MSGS_PER_THREAD),
                     asLong(parsed, "total-messages", DEFAULT_TOTAL_MESSAGES),
                     asInt(parsed, "queue-capacity", DEFAULT_QUEUE_CAPACITY),
+                    asInt(parsed, "main-threads", DEFAULT_MAIN_THREADS),
                     asDuration(parsed, "send-timeout", DEFAULT_SEND_TIMEOUT),
                     asInt(parsed, "max-retries", DEFAULT_MAX_RETRIES),
                     asDuration(parsed, "initial-backoff", DEFAULT_INITIAL_BACKOFF),

@@ -30,6 +30,7 @@ public class App {
         System.out.printf("Target server: %s%n", config.serverUri());
         System.out.printf("Warmup: %d threads × %d messages%n", config.warmupThreads(), config.warmupMessagesPerThread());
         System.out.printf("Main phase total messages: %,d%n", config.totalMessages());
+        System.out.printf("Main phase threads: %d%n", config.effectiveMainThreads());
 
         BlockingQueue<ChatMessage> messageQueue =
                 new ArrayBlockingQueue<>(config.messageQueueCapacity());
