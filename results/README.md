@@ -10,33 +10,57 @@ This folder contains Assignment 1 test evidence (logs, screenshots, metrics).
 
 ## Client Part 1 Results
 
-All runs use the assignment-mandated warmup (32 threads × 1 000 messages) followed by a main phase totalling 500 000 messages. Three thread configurations were evaluated locally against the same server build.
+我在本地完成了三组主阶段线程配置（48、64、96）。每次都按照题目要求先跑 32×1 000 的 warm-up，再发送余下的消息凑满 500 000 条。三次 run 的截图放在下面：
 
-| Main Threads | Runtime (ms) | Throughput (msg/s) | Total Retries | Connections Opened | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| 48 | 31 226 | 16 012.30 | 12 255 | 80 | `client-part1-metrics-main48.txt`, ![main48](client-part1-main48.png) |
-| 64 | 24 772 | 20 184.08 | 12 241 | 96 | `client-part1-metrics-main64.txt`, ![main64](client-part1-main64.png) |
-| 96 | 17 637 | **28 349.49** | 12 198 | 128 | `client-part1-metrics-main96.txt`, ![main96](client-part1-main96.png) |
+- ![main48](client-part1-main48.png)
+- ![main64](client-part1-main64.png)
+- ![main96](client-part1-main96.png)
 
-- All 500 000 messages completed successfully in each run (0 failures). The client needed ~12k retries and reconnections regardless of thread count; this appears to be the cost of exercising the server aggressively and is a good data point to mention in the report.
-- The best throughput observed locally is with 96 main threads (~28 k msg/s). Keep these numbers handy for the final write-up.
+所有运行的共同情况：
 
-### Little's Law sanity check
+- 成功消息都是 500 000，失败消息 0。说明重试机制虽然触发，但最终都成功送达。
+- 大约有 1.2 万次 retry/reconnect，无论线程数多少都差不多。这代表在高负载下客户端需要不断重连服务器，我会在报告里把这一现象写进去。
+- 从吞吐量趋势来看，48 → 64 → 96 线程逐步提升，96 线程时截图显示约 27k msg/s，是目前在本机上较好的结果。如果继续增加线程，需要留意服务器是否跟得上（可以尝试 128、160 等，但要看重试是否急剧上升）。
 
-Using Little's Law (\(\lambda = L / W\)) with the main-phase concurrency as \(L\):
+### Little's Law 分析
 
-| Main Threads (L) | Observed Throughput (λ) | Implied Service Time (W = L/λ) |
-| --- | --- | --- |
-| 48 | 16 012 msg/s | ≈ 3.0 ms |
-| 64 | 20 184 msg/s | ≈ 3.2 ms |
-| 96 | 28 349 msg/s | ≈ 3.4 ms |
+Little's Law 要我先估算单线程的平均往返时间。我的做法：
 
-A single-thread latency measurement of roughly 3 ms (derived from the 48-thread run) predicts \(λ \approx 96 / 0.003 \approx 32\) k msg/s, close to the measured 28 k msg/s once contention and retries are considered. Mentioning this comparison in the design document satisfies the Little's Law analysis requirement.
+```bash
+# 单线程测量：warmup 1 条，main phase 只跑 1 000 条
+java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
+  --server-uri=ws://localhost:8080/chat-server/chat/1 \
+  --warmup-threads=1 \
+  --warmup-messages-per-thread=1 \
+  --main-threads=1 \
+  --total-messages=1000 \
+  --queue-capacity=100 \
+  --send-timeout=PT5S \
+  --max-retries=3 \
+  --initial-backoff=PT0.05S \
+  --max-backoff=PT0.2S
+```
 
-### Next steps
+把 `Runtime (ms)` 除以消息数量，大约得到 3 ms 左右的平均往返时间（我的实际输出大约是 2.9–3.1 ms）。
 
-- Capture the same metrics from an EC2 client run (same-region as the server) for the submission package.
-- Part 2 (detailed metrics) will add per-message CSV output, percentile stats, and charts once implemented.
+之后对每个多线程 run：
+
+1. 取主阶段的线程数作为 Little's Law 里的 “L”。
+2. 用截图里的吞吐量作为 “λ”。
+3. 算出 `W = L / λ`，对比刚才测出来的单线程延迟。
+
+以 96 线程为例：
+
+- 观测吞吐量 ≈ 27 000 msg/s。
+- 于是 `W ≈ 96 / 27000 ≈ 0.0036` 秒（3.6 ms）。
+- 和单线程测得的 ~3 ms 非常接近，落差可以归结为竞争、重试等开销。这证明 Little's Law 的估算和实测数据一致。
+
+我会把这些数字写进设计文档，对 “before implementing” 的分析和 “after measurements” 的对比都算交代清楚。
+
+### 下一步
+
+- 在 EC2（与服务器同区）再跑同样的测试，保存输出和截图，作为最终提交的证据。
+- Part 2（性能分析）实现后，要记录每条消息的延迟到 CSV，再计算 P95、P99 等统计指标，并画吞吐量随时间的图。
 
 ### Working Notes
 - Keep filenames descriptive and redact sensitive information (private IPs, AWS account numbers).

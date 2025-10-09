@@ -1,8 +1,0 @@
-=== Client Part 1 Metrics (main threads = 96) ===
-Successful messages : 500000
-Failed messages     : 0
-Total retries       : 12198
-Connections opened  : 128
-Reconnections       : 12198
-Runtime (ms)        : 17637
-Throughput (msg/s)  : 28349.49
