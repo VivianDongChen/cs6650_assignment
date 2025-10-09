@@ -1,14 +1,19 @@
 # Results Archive
 
-Store Assignment 1 evidence (logs, screenshots, metrics) in this directory.
+This folder contains Assignment 1 test evidence (logs, screenshots, metrics).
 
-## Suggested Layout
-- `server/`: WebSocket + health endpoint evidence (local + EC2).
-- `client-part1/`: Warm-up run logs, throughput screenshots.
-- `client-part2/`: Metrics CSV, charts, analysis notes.
-- `docs.md`: Quick summary of what each artifact demonstrates.
+## Server Test Results
+- `server-health-local.png` – output of `curl http://localhost:8080/chat-server/health`.
+- `server-health-ec2.png` – output of `curl http://<ec2-ip>:8080/chat-server/health`.
+- `server-websocket-success.png` – successful WebSocket echo (Postman).
+- `server-websocket-invalid.png` – validation error example (missing fields).
 
-## Working Notes
-- File names should describe **what** and **where** (e.g., `server/ec2-health-curl.txt`).
-- Mask any sensitive information (private IPs, AWS account numbers).
-- Update `docs.md` whenever new evidence is added so submission packaging is faster.
+## Client Part 1 (coming soon)
+- Add warm-up run logs, throughput summary, and “Part 1 output (basic metrics)” screenshot once the client is implemented.
+
+## Client Part 2 (coming soon)
+- Add metrics CSV files, percentile charts, and analysis notes here.
+
+### Working Notes
+- Keep filenames descriptive and redact sensitive information (private IPs, AWS account numbers).
+- Update this README whenever new evidence is added so packaging the final submission is fast.
