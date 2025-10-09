@@ -52,8 +52,9 @@ Goals:
 ## Running the client (sample)
 
 ```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 mvn -q clean package
-java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
+$JAVA_HOME/bin/java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
   --server-uri=ws://localhost:8080/chat/1 \
   --warmup-threads=32 \
   --warmup-messages-per-thread=1000 \

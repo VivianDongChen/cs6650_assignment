@@ -85,6 +85,8 @@
                   <mainClass>com.cs6650.chat.client.App</mainClass>
                 </transformer>
               </transformers>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>shaded</shadedClassifierName>
               <createDependencyReducedPom>false</createDependencyReducedPom>
             </configuration>
           </execution>
