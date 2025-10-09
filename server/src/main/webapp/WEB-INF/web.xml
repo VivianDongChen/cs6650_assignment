@@ -3,5 +3,15 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <display-name>Archetype Created Web Application</display-name>
+  <display-name>CS6650 Chat Server</display-name>
+
+  <servlet>
+    <servlet-name>healthServlet</servlet-name>
+    <servlet-class>com.cs6650.chat.server.web.HealthServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>healthServlet</servlet-name>
+    <url-pattern>/health</url-pattern>
+  </servlet-mapping>
 </web-app>
