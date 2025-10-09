@@ -53,7 +53,7 @@ Goals:
 
 ```bash
 mvn -q clean package
-java -jar target/client-part1-1.0-SNAPSHOT.jar \
+java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
   --server-uri=ws://localhost:8080/chat/1 \
   --warmup-threads=32 \
   --warmup-messages-per-thread=1000 \
