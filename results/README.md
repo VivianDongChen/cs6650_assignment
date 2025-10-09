@@ -8,26 +8,26 @@ This folder contains Assignment 1 test evidence (logs, screenshots, metrics).
 - `server-websocket-success.png` – successful WebSocket echo (Postman).
 - `server-websocket-invalid.png` – validation error example (missing fields).
 
-## Client Part 1 Results
+## Client Part 1 Results (local)
 
-我在本地完成了三组主阶段线程配置（48、64、96）。每次都按照题目要求先跑 32×1 000 的 warm-up，再发送余下的消息凑满 500 000 条。三次 run 的截图放在下面：
+Each run uses the required warm-up (32 threads × 1 000 messages) and then sends the remaining messages in the main phase to reach 500 000 total. The screenshots captured from the terminal are listed in the table below.
 
-- ![main48](client-part1-main48.png)
-- ![main64](client-part1-main64.png)
-- ![main96](client-part1-main96.png)
+| Main Threads | Runtime (ms) | Throughput (msg/s) | Total Retries | Connections Opened | Screenshot |
+| --- | --- | --- | --- | --- | --- |
+| 48  | 31 681 | 15 782.33 | 12 259 | 80  | ![48](client-part1-main48.png) |
+| 64  | 24 352 | 20 532.19 | 12 261 | 96  | ![64](client-part1-main64.png) |
+| 96  | 18 681 | 26 765.16 | 12 194 | 128 | ![96](client-part1-main96.png) |
+| 128 | 17 730 | **28 200.79** | 12 243 | 160 | ![128](client-part1-main128.png) |
+| 160 | 18 735 | 26 688.02 | 12 261 | 192 | ![160](client-part1-main160.png) |
 
-所有运行的共同情况：
+- All 500 000 messages completed successfully (0 failures) in every run. ~12 k retries/reconnections occur regardless of thread count, showing that the client keeps recovering from backpressure.
+- Throughput peaks around 128 main threads (~28 k msg/s) on this workstation. Adding more threads (160) does not improve throughput, so further scaling would require server-side tuning.
 
-- 成功消息都是 500 000，失败消息 0。说明重试机制虽然触发，但最终都成功送达。
-- 大约有 1.2 万次 retry/reconnect，无论线程数多少都差不多。这代表在高负载下客户端需要不断重连服务器，我会在报告里把这一现象写进去。
-- 从吞吐量趋势来看，48 → 64 → 96 线程逐步提升，96 线程时截图显示约 27k msg/s，是目前在本机上较好的结果。如果继续增加线程，需要留意服务器是否跟得上（可以尝试 128、160 等，但要看重试是否急剧上升）。
+### Single-thread measurement for Little’s Law
 
-### Little's Law 分析
-
-Little's Law 要我先估算单线程的平均往返时间。我的做法：
+Before the large tests, a single-thread scenario was executed to capture the average turnaround time:
 
 ```bash
-# 单线程测量：warmup 1 条，main phase 只跑 1 000 条
 java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
   --server-uri=ws://localhost:8080/chat-server/chat/1 \
   --warmup-threads=1 \
@@ -41,26 +41,26 @@ java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
   --max-backoff=PT0.2S
 ```
 
-把 `Runtime (ms)` 除以消息数量，大约得到 3 ms 左右的平均往返时间（我的实际输出大约是 2.9–3.1 ms）。
+Result: 1 000 messages in 1 924 ms (throughput 519.75 msg/s). The measured average service time is therefore `W_single = 1.924 ms`. Screenshot: ![single thread](client-part1-single-thread.png)
 
-之后对每个多线程 run：
+### Little’s Law comparison
 
-1. 取主阶段的线程数作为 Little's Law 里的 “L”。
-2. 用截图里的吞吐量作为 “λ”。
-3. 算出 `W = L / λ`，对比刚才测出来的单线程延迟。
+Using `λ = L / W`, the thread count of the main phase serves as `L` and `W_single` is applied to estimate the theoretical throughput. The observed values are the numbers from the table above.
 
-以 96 线程为例：
+| Main Threads (L) | Observed λ (msg/s) | Predicted λ = L / W_single (msg/s) | Comments |
+| --- | --- | --- | --- |
+| 48  | 15 782 | ≈ 24 940 | Contention and retries keep throughput well below the theoretical limit. |
+| 64  | 20 532 | ≈ 33 240 | Additional threads increase throughput, but overhead still caps performance. |
+| 96  | 26 765 | ≈ 49 630 | Throughput rises further, yet remains below the ideal prediction. |
+| 128 | 28 201 | ≈ 66 530 | Best result locally; still far from the theoretical ceiling because of retry cost. |
+| 160 | 26 688 | ≈ 83 160 | Adding more threads starts to reduce throughput again. |
 
-- 观测吞吐量 ≈ 27 000 msg/s。
-- 于是 `W ≈ 96 / 27000 ≈ 0.0036` 秒（3.6 ms）。
-- 和单线程测得的 ~3 ms 非常接近，落差可以归结为竞争、重试等开销。这证明 Little's Law 的估算和实测数据一致。
+The theoretical predictions are intentionally optimistic (no retry/synchronization overhead), so it is expected that the observed throughput is lower. The trend still matches the expectation that more concurrency improves throughput until diminishing returns appear.
 
-我会把这些数字写进设计文档，对 “before implementing” 的分析和 “after measurements” 的对比都算交代清楚。
+### Next steps
 
-### 下一步
-
-- 在 EC2（与服务器同区）再跑同样的测试，保存输出和截图，作为最终提交的证据。
-- Part 2（性能分析）实现后，要记录每条消息的延迟到 CSV，再计算 P95、P99 等统计指标，并画吞吐量随时间的图。
+- Repeat the same tests on an EC2 client in the same region as the server and archive those outputs/screenshots.
+- For Client Part 2, add per-message CSV exports, percentile calculations, and throughput-over-time charts.
 
 ### Working Notes
 - Keep filenames descriptive and redact sensitive information (private IPs, AWS account numbers).
