@@ -1,6 +1,6 @@
 # Client Part 1
 
-This module implements the Assignment 1 **Part 1** multithreaded WebSocket client.  
+This module implements the Assignment 1 **Part 2 (Client Part 1)** multithreaded WebSocket client.  
 Goals:
 
 - Simulate 500 000 chat messages against the server.
