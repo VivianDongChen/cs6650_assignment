@@ -1,15 +1,14 @@
 # Results Archive
 
-Store all Assignment 1 artifacts generated from testing and analysis in this directory.
+Store Assignment 1 evidence (logs, screenshots, metrics) in this directory.
 
-## Expected Contents
-- CSV files with per-message latency metrics
-- Aggregated statistics summaries
-- Visualization outputs (PNG/SVG/PDF charts)
-- Screenshots for Canvas submission (server, client, EC2 console)
-- Notes describing test scenarios and parameters
+## Suggested Layout
+- `server/`: WebSocket + health endpoint evidence (local + EC2).
+- `client-part1/`: Warm-up run logs, throughput screenshots.
+- `client-part2/`: Metrics CSV, charts, analysis notes.
+- `docs.md`: Quick summary of what each artifact demonstrates.
 
-## Maintenance Checklist
-1. Keep filenames timestamped and descriptive.
-2. Include a short README update whenever new results are added.
-3. Ensure sensitive information (keys, IPs) is redacted before committing.
+## Working Notes
+- File names should describe **what** and **where** (e.g., `server/ec2-health-curl.txt`).
+- Mask any sensitive information (private IPs, AWS account numbers).
+- Update `docs.md` whenever new evidence is added so submission packaging is faster.
