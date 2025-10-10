@@ -13,10 +13,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Entry point for the Assignment 1 Client Part 1 application.
- * <p>
- * At this stage the class wires together the major components (configuration, message
- * generation, sender orchestration and metrics) but the low-level networking logic is still
- * implemented as TODOs inside the respective classes.
+ * Wires together configuration, message generation, sender orchestration, and metrics reporting.
  */
 public class App {
 

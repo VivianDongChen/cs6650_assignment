@@ -11,43 +11,28 @@ Goals:
 
 | Component | Purpose |
 | --- | --- |
-| `MessageGenerator` (single thread) | Pre-generates messages into a bounded queue (50-message templates, randomised fields). |
-| `SenderWorker` (pool of threads) | Consumes messages, maintains persistent WebSocket connection, handles retries/backoff. |
-| `ConnectionManager` | Creates/recovers WebSocket sessions, records connection stats, applies pooling limits. |
-| `MetricsRecorder` | Thread-safe counters and timers; exposes final report + optional interim logging. |
-| `ClientApp` | CLI entry point; parses args (host, port, room count, warmup/main config) and orchestrates phases. |
+| `MessageGenerator` (single thread) | Pre-generates 500 000 messages into a bounded queue (capacity 10 000) using the required randomisation rules. |
+| `SenderWorker` (worker threads) | Consumes messages, stamps client send time, and coordinates retry/backoff logic. |
+| `ReliableWebSocketClient` | Thin wrapper around `java.net.http.WebSocket` that keeps connections open and handles reconnects. |
+| `SenderOrchestrator` | Runs warmup (32 × 1 000) and main phases with dynamic work allocation per thread. |
+| `MetricsRecorder` | Thread-safe counters + timer that produce the “basic metrics” summary. |
+| `App` + `ClientConfigLoader` | CLI entry point + argument parsing/defaults. |
 
-## Implementation Roadmap
+## Implementation Highlights
 
-1. **Scaffold & config**
-   - Confirm Maven exec plugin / shading strategy for runnable JAR.
-   - Define configuration model (CLI args + defaults via properties/env).
-2. **Message generation**
-   - Implement randomisation rules; push into `LinkedBlockingQueue` (size e.g. 10 000 to avoid memory pressure).
-3. **Connection pool**
-   - Warmup: spawn 32 workers, each open new WebSocket (auto-close after 1000 msgs).
-   - Main phase: optionally resize thread pool; reuse connections.
-   - Auto-reconnect with jittered exponential backoff (max 5 attempts).
-4. **Retry & error tracking**
-   - Per-message retry loop; on 5 failures mark as “failed”.
-   - Collect per-connection stats (opens, reconnects, failures).
-5. **Metrics output**
-   - Record start/end wall clock.
-   - Counters: successes, failures, retries, total connections, reconnections.
-   - Print summary to stdout (CSV/log friendly).
-6. **Testing / validation**
-   - Local run against localhost server (small message count first).
-   - Full 500 k run to gather Part 1 screenshot (basic metrics).
-   - Optional: stress test on EC2 client host as described in plan.
+1. **Warmup + main orchestration** – `SenderOrchestrator` submits one worker per warmup thread, then redistributes the remaining messages across the configured main-phase thread count.
+2. **Message generation contract** – `MessageGenerator` follows the spec (`userId` 1-100 000, `username` = `user<id>`, 50-template message pool, `roomId` 1-20, message type mix 90 % TEXT / 5 % JOIN / 5 % LEAVE, timestamp = `Instant.now()`).
+3. **Backpressure control** – The bounded queue keeps around 10 000 prefetched messages so workers almost never block waiting for payloads.
+4. **Retry and reconnection** – `SenderWorker` attempts each send up to 5 times with exponential backoff (`initial-backoff`, `max-backoff`) and forces a reconnect on transport errors.
+5. **Metrics output** – `MetricsRecorder` tracks successes, failures (post-retry), total retries, connections opened, reconnections, runtime, and throughput; it logs a summary when the run completes.
+6. **Configuration via flags** – Defaults match the assignment (32 warmup threads × 1 000, 500 000 total messages, etc.) and can be overridden with `--key=value` CLI args.
 
-## Testing Checklist
+## Recommended Validation Steps
 
-- [ ] Unit-test random message generation (field ranges, distribution).
-- [ ] Smoke test with 1 000 messages / 4 threads to validate queue/connection.
-- [ ] Warmup phase metrics validated (32 × 1000).
-- [ ] Full run metrics captured (success ≥ 500 000, failure == 0 ideally).
-- [ ] EC2 client run (same region as server) + collect screenshot for results.
-- [ ] Capture Little's Law estimate vs. actual throughput.
+- Quick smoke test with a small workload (e.g. `--total-messages=1000 --main-threads=4`) to confirm connectivity.
+- Full 500 000 message run against localhost; capture metrics output and screenshots (stored in `results/`).
+- Reproduce the single-thread baseline for Little’s Law analysis (`--warmup-threads=1 --main-threads=1 --total-messages=1000`).
+- Optional: run from an EC2 client in the same region as the server to compare WAN vs. LAN throughput.
 
 ## Running the client (sample)
 
@@ -72,10 +57,8 @@ Additional flags:
 | `--initial-backoff` | First backoff duration (`PT0.1S`) | `PT0.1S` |
 | `--max-backoff` | Maximum backoff duration | `PT5S` |
 
-## TODO Backlog
+## Future Enhancements
 
-- [ ] Wire CLI parser (Picocli or Apache Commons CLI).
-- [ ] Implement WebSocket client (likely `java.net.http.WebSocket` or `Tyrus`).
-- [ ] Backoff strategy helper.
-- [ ] Structured logging (logback or slf4j-simple).
-- [ ] Write instructions for build/run once implementation stabilises.
+- Add per-message latency capture + CSV export (Part 3 preparation).
+- Integrate structured logging and optional progress reporting.
+- Replace ad-hoc CLI parsing with a library (Picocli) for better validation/help output.

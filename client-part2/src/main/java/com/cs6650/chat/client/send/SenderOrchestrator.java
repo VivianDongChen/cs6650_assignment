@@ -2,6 +2,7 @@ package com.cs6650.chat.client.send;
 
 import com.cs6650.chat.client.config.ClientConfig;
 import com.cs6650.chat.client.metrics.MetricsRecorder;
+import com.cs6650.chat.client.metrics.MetricsCollector;
 import com.cs6650.chat.client.message.ChatMessage;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,15 +20,18 @@ public final class SenderOrchestrator {
     private final ClientConfig config;
     private final BlockingQueue<ChatMessage> queue;
     private final MetricsRecorder metrics;
+    private final MetricsCollector detailedMetrics;  // Part 2: detailed metrics
     private final ExecutorService executor;
 
     public SenderOrchestrator(ClientConfig config,
                               BlockingQueue<ChatMessage> queue,
                               MetricsRecorder metrics,
+                              MetricsCollector detailedMetrics,
                               ExecutorService executor) {
         this.config = config;
         this.queue = queue;
         this.metrics = metrics;
+        this.detailedMetrics = detailedMetrics;
         this.executor = executor;
     }
 
@@ -68,7 +72,7 @@ public final class SenderOrchestrator {
             if (messagesForThread <= 0) {
                 continue;
             }
-            SenderWorker worker = new SenderWorker(config, queue, metrics, messagesForThread, Phase.MAIN.prefix + (i + 1));
+            SenderWorker worker = new SenderWorker(config, queue, metrics, detailedMetrics, messagesForThread, Phase.MAIN.prefix + (i + 1));
             futures.add(executor.submit(worker));
         }
         waitForFutures(futures);
@@ -82,6 +86,7 @@ public final class SenderOrchestrator {
                     config,
                     queue,
                     metrics,
+                    detailedMetrics,
                     messagesPerThread,
                     phase.prefix + (i + 1)
             );
