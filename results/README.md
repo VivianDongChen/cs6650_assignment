@@ -71,17 +71,17 @@ java -jar target/client-part1-1.0-SNAPSHOT-shaded.jar \
 - Throughput: 521.92 msg/s
 - **Average service time:** `W_local = 1.916 ms`
 
-Screenshot: [client-part1-local-single-thread.png](client-part1-single-thread.png)
+Screenshot: [client-part1-single-thread.png](client-part1-single-thread.png)
 
 ### Multi-Thread Performance Results
 
 | Main Threads | Runtime (ms) | Throughput (msg/s) | Total Retries | Reconnections | Connections Opened | Screenshot |
 |-------------|--------------|-------------------|---------------|---------------|-------------------|------------|
-| 48  | 31,132 | 16,060.64 | 12,269 | 12,269 | 80  | [client-part1-local-main48.png](client-part1-main48.png) |
-| 64  | 24,468 | 20,434.85 | 12,234 | 12,234 | 96  | [client-part1-local-main64.png](client-part1-main64.png) |
-| 96  | 18,260 | 27,382.26 | 12,250 | 12,250 | 128 | [client-part1-local-main96.png](client-part1-main96.png) |
-| 128 | 16,526 | **30,255.36** | 12,253 | 12,253 | 160 | [client-part1-local-main128.png](client-part1-main128.png) |
-| 160 | 17,700 | 28,248.59 | 12,290 | 12,290 | 192 | [client-part1-local-main160.png](client-part1-main160.png) |
+| 48  | 31,132 | 16,060.64 | 12,269 | 12,269 | 80  | [client-part1-main48.png](client-part1-main48.png) |
+| 64  | 24,468 | 20,434.85 | 12,234 | 12,234 | 96  | [client-part1-main64.png](client-part1-main64.png) |
+| 96  | 18,260 | 27,382.26 | 12,250 | 12,250 | 128 | [client-part1-main96.png](client-part1-main96.png) |
+| 128 | 16,526 | **30,255.36** | 12,253 | 12,253 | 160 | [client-part1-main128.png](client-part1-main128.png) |
+| 160 | 17,700 | 28,248.59 | 12,290 | 12,290 | 192 | [client-part1-main160.png](client-part1-main160.png) |
 
 **Key Observations:**
 - All 500,000 messages completed successfully (0 failures) across all configurations

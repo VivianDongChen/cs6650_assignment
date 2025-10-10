@@ -196,7 +196,7 @@ Submit as PDF to Canvas containing:
 
 ### 3. Test Results:
 
-- Screenshot of Part 1 output (basic metrics)
+- Screenshot of Part 1 output (basic metrics)∏
 - Screenshot of Part 2 output (detailed metrics)
 - Performance analysis charts
 - Evidence of EC2 deployment (EC2 console screenshot)
